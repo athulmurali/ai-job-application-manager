@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  job-tracker:
+    build: .
+    container_name: job-tracker-app
+    ports:
+      - "11434:11434"  # Ollama API
+      - "3000:3000"    # App port (if needed)
+    environment:
+      - NODE_ENV=production
+      - DEBUG=false
+      - DRY_RUN=true
+      - EMAIL_DAYS_BACK=30
+      - CONFIDENCE_THRESHOLD=0.8
+      - USE_OLLAMA=true
+      - OLLAMA_URL=http://localhost:11434
+      - OLLAMA_MODEL=llama3.1:8b
+      # Gmail API credentials (override in .env file)
+      - GMAIL_CLIENT_ID=${GMAIL_CLIENT_ID}
+      - GMAIL_CLIENT_SECRET=${GMAIL_CLIENT_SECRET}
+      - GMAIL_REDIRECT_URI=${GMAIL_REDIRECT_URI}
+      - GMAIL_ACCESS_TOKEN=${GMAIL_ACCESS_TOKEN}
+      - GMAIL_REFRESH_TOKEN=${GMAIL_REFRESH_TOKEN}
+    volumes:
+      - ollama_models:/root/.ollama
+      - ./logs:/app/logs
+      - ./exports:/app/exports
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    # Resource limits for Ollama
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+
+  # Optional: Scheduled runs using cron
+  job-tracker-cron:
+    build: .
+    container_name: job-tracker-cron
+    environment:
+      - NODE_ENV=production
+      - DEBUG=false
+      - DRY_RUN=false  # Live mode for scheduled runs
+      - EMAIL_DAYS_BACK=7
+      - CONFIDENCE_THRESHOLD=0.8
+      - USE_OLLAMA=true
+      - OLLAMA_URL=http://job-tracker:11434
+      - GMAIL_CLIENT_ID=${GMAIL_CLIENT_ID}
+      - GMAIL_CLIENT_SECRET=${GMAIL_CLIENT_SECRET}
+      - GMAIL_REDIRECT_URI=${GMAIL_REDIRECT_URI}
+      - GMAIL_ACCESS_TOKEN=${GMAIL_ACCESS_TOKEN}
+      - GMAIL_REFRESH_TOKEN=${GMAIL_REFRESH_TOKEN}
+    volumes:
+      - ollama_models:/root/.ollama
+      - ./logs:/app/logs
+      - ./exports:/app/exports
+    depends_on:
+      - job-tracker
+    profiles:
+      - cron
+    command: >
+      sh -c "
+        # Install cron
+        apt-get update && apt-get install -y cron
+        # Add cron job - run every 4 hours
+        echo '0 */4 * * * cd /app && node dist/index.js >> /app/logs/cron.log 2>&1' | crontab -
+        # Start cron
+        cron -f
+      "
+
+volumes:
+  ollama_models:
+    driver: local
+
+networks:
+  default:
+    name: job-tracker-network

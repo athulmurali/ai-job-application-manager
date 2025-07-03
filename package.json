@@ -1,0 +1,33 @@
+{
+  "name": "job-application-manager",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "dry-run": "ts-node src/index.ts",
+    "live": "DRY_RUN=false ts-node src/index.ts",
+    "live-safe": "DRY_RUN=false EMAIL_DAYS_BACK=7 ts-node src/index.ts",
+    "setup-gmail": "ts-node scripts/setup-gmail-auth.ts",
+    "get-auth-url": "ts-node scripts/get-auth-url.ts",
+    "get-tokens": "ts-node scripts/get-tokens.ts",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "echo \"Linting not configured yet\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^24.0.10",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "dotenv": "^17.0.1",
+    "googleapis": "^150.0.1"
+  }
+}
