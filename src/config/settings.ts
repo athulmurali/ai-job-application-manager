@@ -36,7 +36,8 @@ export interface AppConfig {
 
 export function loadConfig(): AppConfig {
   return {
-    dryRun: process.env.DRY_RUN?.toLowerCase() === 'true' || true, // Default to true for safety
+    // Dry run unless explicitly disabled with DRY_RUN=false (safe default).
+    dryRun: process.env.DRY_RUN?.toLowerCase() !== 'false',
     emailDaysBack: parseInt(process.env.EMAIL_DAYS_BACK || '30'),
     emailLimit: parseInt(process.env.EMAIL_LIMIT || '50'),
     confidenceThreshold: parseFloat(process.env.CONFIDENCE_THRESHOLD || '0.7'),
