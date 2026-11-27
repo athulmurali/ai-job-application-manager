@@ -4,6 +4,7 @@ import { loadConfig, validateConfig } from './config/settings';
 import { EmailProcessor } from './pipeline/EmailProcessor';
 import { SimplifyUpdater } from './simplify/updateStatus';
 import { getSampleEmailsForDryRun } from './data/sampleEmails';
+import { createMailProviders, listEmailsFromAll, toProcessedEmail } from './mail';
 
 // Load environment variables
 dotenv.config();
@@ -28,23 +29,23 @@ async function main() {
     const emailProcessor = new EmailProcessor(config);
     const simplifyUpdater = new SimplifyUpdater(config.dryRun);
 
-    // Fetch emails from Gmail if credentials are configured, otherwise use samples
+    // Fetch emails from every configured mail provider (Gmail, iCloud), otherwise use samples
     let emails;
-    
-    if (config.gmail.accessToken || config.gmail.refreshToken) {
+    const providers = createMailProviders(config);
+
+    if (providers.length > 0) {
       try {
-        logger.info('📧 Fetching emails from Gmail API...');
-        const { EmailFetcher } = await import('./gmail/fetchEmails');
-        const emailFetcher = new EmailFetcher();
-        await emailFetcher.initialize();
-        emails = await emailFetcher.fetchJobRelatedEmails(config.emailDaysBack);
-        logger.info(`Found ${emails.length} job-related emails from Gmail`);
+        logger.info(`📧 Fetching emails from: ${providers.map(p => p.name).join(', ')}`);
+        const since = new Date(Date.now() - config.emailDaysBack * 24 * 60 * 60 * 1000);
+        const messages = await listEmailsFromAll(providers, { since, limit: config.emailLimit });
+        emails = messages.map(toProcessedEmail);
+        logger.info(`Found ${emails.length} job-related emails`);
       } catch (error) {
-        logger.error('Failed to fetch emails from Gmail, falling back to sample data:', error);
+        logger.error('Failed to fetch emails, falling back to sample data:', error);
         emails = getSampleEmailsForDryRun();
       }
     } else {
-      logger.info('📧 No Gmail credentials found, using sample emails for demonstration...');
+      logger.info('📧 No mail provider configured, using sample emails for demonstration...');
       emails = getSampleEmailsForDryRun();
     }
     
