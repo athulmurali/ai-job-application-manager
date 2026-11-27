@@ -7,6 +7,8 @@ export interface AppConfig {
   emailDaysBack: number;
   /** Max emails fetched per provider per run. */
   emailLimit: number;
+  /** Also search Gmail Spam / iCloud Junk (INCLUDE_SPAM, default true). */
+  includeSpam: boolean;
   confidenceThreshold: number;
   debug: boolean;
   /** Providers to read from (MAIL_PROVIDERS=gmail,icloud). Undefined = every configured provider. */
@@ -39,6 +41,7 @@ export function loadConfig(): AppConfig {
     dryRun: process.env.DRY_RUN?.toLowerCase() === 'true' || true, // Default to true for safety
     emailDaysBack: parseInt(process.env.EMAIL_DAYS_BACK || '30'),
     emailLimit: parseInt(process.env.EMAIL_LIMIT || '50'),
+    includeSpam: process.env.INCLUDE_SPAM?.toLowerCase() !== 'false',
     confidenceThreshold: parseFloat(process.env.CONFIDENCE_THRESHOLD || '0.7'),
     debug: process.env.DEBUG?.toLowerCase() === 'true' || process.env.NODE_ENV === 'development',
     mailProviders: parseProviderList(process.env.MAIL_PROVIDERS),

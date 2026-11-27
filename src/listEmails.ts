@@ -5,6 +5,7 @@
  *   npm run list-emails -- --provider icloud # one provider (gmail | icloud, comma-separated)
  *   npm run list-emails -- --days 3 --limit 20
  *   npm run list-emails -- --all             # no keyword filter: every email in the window
+ *   npm run list-emails -- --no-spam         # skip Gmail Spam / iCloud Junk (included by default)
  *   npm run list-emails -- --json            # full messages as JSON (includes bodies)
  */
 import dotenv from 'dotenv';
@@ -34,6 +35,7 @@ async function main() {
   const messages = await listEmailsFromAll(providers, {
     since,
     limit,
+    includeSpam: config.includeSpam && !flag('no-spam'),
     ...(flag('all') ? { keywords: [] } : {}),
   });
 
@@ -45,7 +47,8 @@ async function main() {
   console.log(`\n${messages.length} emails since ${since.toISOString().slice(0, 10)}\n`);
   for (const m of messages) {
     const date = m.date.toISOString().slice(0, 16).replace('T', ' ');
-    console.log(`${date}  ${m.provider.padEnd(6)}  ${truncate(m.from, 40).padEnd(40)}  ${truncate(m.subject, 80)}`);
+    const spam = /^(spam|junk)$/i.test(m.folder ?? '') ? '[JUNK] ' : '';
+    console.log(`${date}  ${m.provider.padEnd(6)}  ${truncate(m.from, 40).padEnd(40)}  ${spam}${truncate(m.subject, 80)}`);
   }
 }
 
