@@ -44,6 +44,8 @@ export enum EmailIntent {
 
 export interface ProcessedEmail {
   id: string;
+  /** Where the email came from, e.g. "icloud:me@icloud.com". */
+  source?: string;
   from: string;
   subject: string;
   body: string;

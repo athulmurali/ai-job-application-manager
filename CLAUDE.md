@@ -20,9 +20,16 @@ The project follows a modular pipeline architecture:
 
 ```
 src/
+├── mail/                    # Mail adapters: one MailProvider per service
+│   ├── types.ts             # MailProvider interface + provider-neutral MailMessage
+│   ├── index.ts             # createMailProviders, listEmailsFromAll (merge + dedupe)
+│   ├── keywords.ts          # Shared job-related keyword list
+│   ├── parse.ts             # Raw MIME → MailMessage (mailparser)
+│   └── providers/
+│       ├── gmailProvider.ts   # Gmail REST API (OAuth)
+│       └── icloudProvider.ts  # iCloud IMAP (app-specific password, read-only)
 ├── gmail/
 │   ├── auth.ts              # OAuth2 setup for Gmail API
-│   ├── fetchEmails.ts       # Search & pull relevant emails
 ├── parser/
 │   ├── classifyEmail.ts     # Heuristics/NLP to identify intent
 │   ├── extractMetadata.ts   # Extract company name, job ID, status type
@@ -95,6 +102,16 @@ To connect real Gmail data instead of sample emails:
 1. **Follow Gmail setup guide:** See `GMAIL_SETUP.md` for detailed instructions
 2. **Quick setup:** Run `yarn setup-gmail` and follow prompts
 3. **Test connection:** Run `yarn run` - should show real emails instead of samples
+
+## iCloud Mail Setup
+
+iCloud has no REST mail API; `icloudProvider.ts` uses IMAP (`imap.mail.me.com:993`) and opens the mailbox read-only.
+
+1. Generate an app-specific password at account.apple.com → Sign-In and Security → App-Specific Passwords (requires 2FA)
+2. Add to `.env`: `ICLOUD_EMAIL` (primary iCloud address), `ICLOUD_APP_PASSWORD`, optional `ICLOUD_MAILBOX` (default `INBOX`)
+3. Test: `npm run list-emails -- --provider icloud`
+
+`MAIL_PROVIDERS=gmail,icloud` restricts which providers run (default: every configured one). `EMAIL_LIMIT` caps emails per provider (default 50).
 
 ## Development Notes
 
