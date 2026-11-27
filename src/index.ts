@@ -37,7 +37,11 @@ async function main() {
       try {
         logger.info(`📧 Fetching emails from: ${providers.map(p => p.name).join(', ')}`);
         const since = new Date(Date.now() - config.emailDaysBack * 24 * 60 * 60 * 1000);
-        const messages = await listEmailsFromAll(providers, { since, limit: config.emailLimit });
+        const messages = await listEmailsFromAll(providers, {
+          since,
+          limit: config.emailLimit,
+          includeSpam: config.includeSpam,
+        });
         emails = messages.map(toProcessedEmail);
         logger.info(`Found ${emails.length} job-related emails`);
       } catch (error) {

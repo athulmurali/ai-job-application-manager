@@ -111,6 +111,8 @@ iCloud has no REST mail API; `icloudProvider.ts` uses IMAP (`imap.mail.me.com:99
 2. Add to `.env`: `ICLOUD_EMAIL` (primary iCloud address), `ICLOUD_APP_PASSWORD`, optional `ICLOUD_MAILBOX` (default `INBOX`)
 3. Test: `npm run list-emails -- --provider icloud`
 
+Spam is searched by default (Gmail Spam, iCloud Junk) because real interview invites land there; set `INCLUDE_SPAM=false` to skip it. Trash is never searched.
+
 `MAIL_PROVIDERS=gmail,icloud` restricts which providers run (default: every configured one). `EMAIL_LIMIT` caps emails per provider (default 50).
 
 ## Development Notes

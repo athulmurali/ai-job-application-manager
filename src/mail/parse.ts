@@ -5,6 +5,7 @@ interface ParseMeta {
   id: string;
   provider: MailProviderName;
   account: string;
+  folder?: string;
   /** Used when the message has no parsable Date header. */
   fallbackDate?: Date;
 }
@@ -21,6 +22,7 @@ export async function parseRawEmail(raw: Buffer, meta: ParseMeta): Promise<MailM
     id: meta.id,
     provider: meta.provider,
     account: meta.account,
+    folder: meta.folder,
     messageId: parsed.messageId,
     from: parsed.from?.text ?? '',
     to,
